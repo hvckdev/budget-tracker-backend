@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -28,6 +30,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     private ?string $password = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Category::class, orphanRemoval: true)]
+    private Collection $categories;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Product::class)]
+    private Collection $products;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Goal::class, orphanRemoval: true)]
+    private Collection $goals;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Purchase::class, orphanRemoval: true)]
+    private Collection $purchases;
+
+    #[ORM\ManyToOne(inversedBy: 'users')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Balance $balance = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: MonthPayment::class, orphanRemoval: true)]
+    private Collection $monthPayments;
+
+    public function __construct()
+    {
+        $this->categories = new ArrayCollection();
+        $this->products = new ArrayCollection();
+        $this->goals = new ArrayCollection();
+        $this->purchases = new ArrayCollection();
+        $this->monthPayments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -97,5 +127,167 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Category $category): self
+    {
+        if (!$this->categories->contains($category)) {
+            $this->categories->add($category);
+            $category->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCategory(Category $category): self
+    {
+        if ($this->categories->removeElement($category)) {
+            // set the owning side to null (unless already changed)
+            if ($category->getUser() === $this) {
+                $category->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Product>
+     */
+    public function getProducts(): Collection
+    {
+        return $this->products;
+    }
+
+    public function addProduct(Product $product): self
+    {
+        if (!$this->products->contains($product)) {
+            $this->products->add($product);
+            $product->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProduct(Product $product): self
+    {
+        if ($this->products->removeElement($product)) {
+            // set the owning side to null (unless already changed)
+            if ($product->getUser() === $this) {
+                $product->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Goal>
+     */
+    public function getGoals(): Collection
+    {
+        return $this->goals;
+    }
+
+    public function addGoal(Goal $goal): self
+    {
+        if (!$this->goals->contains($goal)) {
+            $this->goals->add($goal);
+            $goal->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGoal(Goal $goal): self
+    {
+        if ($this->goals->removeElement($goal)) {
+            // set the owning side to null (unless already changed)
+            if ($goal->getUser() === $this) {
+                $goal->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Purchase>
+     */
+    public function getPurchases(): Collection
+    {
+        return $this->purchases;
+    }
+
+    public function addPurchase(Purchase $purchase): self
+    {
+        if (!$this->purchases->contains($purchase)) {
+            $this->purchases->add($purchase);
+            $purchase->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchase(Purchase $purchase): self
+    {
+        if ($this->purchases->removeElement($purchase)) {
+            // set the owning side to null (unless already changed)
+            if ($purchase->getUser() === $this) {
+                $purchase->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getBalance(): ?Balance
+    {
+        return $this->balance;
+    }
+
+    public function setBalance(?Balance $balance): self
+    {
+        $this->balance = $balance;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, MonthPayment>
+     */
+    public function getMonthPayments(): Collection
+    {
+        return $this->monthPayments;
+    }
+
+    public function addMonthPayment(MonthPayment $monthPayment): self
+    {
+        if (!$this->monthPayments->contains($monthPayment)) {
+            $this->monthPayments->add($monthPayment);
+            $monthPayment->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMonthPayment(MonthPayment $monthPayment): self
+    {
+        if ($this->monthPayments->removeElement($monthPayment)) {
+            // set the owning side to null (unless already changed)
+            if ($monthPayment->getUser() === $this) {
+                $monthPayment->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }
