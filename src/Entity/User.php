@@ -44,7 +44,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $purchases;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Balance $balance = null;
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: MonthPayment::class, orphanRemoval: true)]
