@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\Category;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -37,6 +39,16 @@ class CategoryRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    public function findByUser(User $user)
+    {
+        return $this->createQueryBuilder('c')
+            ->select('c.id', 'c.name')
+            ->andWhere('c.user = :user')
+            ->setParameter('user', $user->getId())
+            ->getQuery()
+            ->getResult();
     }
 
 //    /**
