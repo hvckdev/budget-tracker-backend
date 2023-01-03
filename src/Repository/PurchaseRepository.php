@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\User;
 use App\Entity\Purchase;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -37,6 +38,16 @@ class PurchaseRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    public function findByUser(User $user)
+    {
+        return $this->createQueryBuilder('p')
+            ->select('p.id', 'p.name', 'p.amount', 'p.created_at')
+            ->andWhere('p.user = :user')
+            ->setParameter('user', $user->getId())
+            ->getQuery()
+            ->getResult();
     }
 
 //    /**

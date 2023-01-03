@@ -6,7 +6,7 @@ use App\Entity\Category;
 use App\Request\CategoryRequest;
 use App\Repository\CategoryRepository;
 use Symfony\Bundle\SecurityBundle\Security;
-use App\EntitySerializer\CategorySerializer;
+use App\Resource\CategoryResource;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,7 +32,7 @@ class CategoryController extends AbstractController
         $categories = $this->categoryRepository->findByUser($this->security->getUser());
 
         return $this->json([
-            'categories' => $categories,
+            'data' => $categories,
         ]);
     }
 
@@ -85,9 +85,9 @@ class CategoryController extends AbstractController
     #[Route('/{category}', name: 'app_category_read', methods: ['GET'])]
     public function read(Category $category): JsonResponse
     {
-        $serializer = new CategorySerializer($category);
+        $resource = new CategoryResource($category);
 
-        return $this->json($serializer->serialize());
+        return $this->json(['data' => $resource->toArray()]);
     }
 
     #[Route('/{category}', name: 'app_category_delete', methods: ['DELETE'])]
