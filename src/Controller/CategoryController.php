@@ -8,6 +8,7 @@ use App\Repository\CategoryRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use App\Resource\CategoryResource;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -46,7 +47,7 @@ class CategoryController extends AbstractController
         $errors = $this->validator->validate($dto);
 
         if ($errors->count() > 0) {
-            throw new UnprocessableEntityHttpException((string) $errors);
+            return $this->json($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $category = new Category();

@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Request\RegistrationRequest;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,7 +31,7 @@ class RegistrationController extends AbstractController
         $errors = $validator->validate($dto);
 
         if ($errors->count() > 0) {
-            throw new UnprocessableEntityHttpException((string) $errors);
+            return $this->json($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $user = new User();

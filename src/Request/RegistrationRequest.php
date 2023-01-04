@@ -6,7 +6,6 @@ use App\Entity\User;
 use App\Validator\UniqueByEntityWithField;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\IdenticalTo;
 use Symfony\Component\Validator\Constraints\NotCompromisedPassword;
 
 class RegistrationRequest
