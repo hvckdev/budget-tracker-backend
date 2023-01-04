@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use App\Entity\Product;
 use App\Entity\Purchase;
 use App\Request\PurchaseRequest;
+use App\Resource\PurchaseResource;
 use App\Repository\PurchaseRepository;
 use App\Repository\CategoryRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -89,6 +90,26 @@ class PurchaseController extends AbstractController
 
         $em->persist($purchase);
         $em->flush();
+
+        return $this->json([
+            'success' => true,
+        ]);
+    }
+
+    #[Route('/{purchase}', name: 'app_purchase_read', methods: ['GET'])]
+    public function read(Purchase $purchase): JsonResponse
+    {
+        $resource = new PurchaseResource($purchase);
+
+        return $this->json([
+            'data' => $resource->toArray(),
+        ]);
+    }
+
+    #[Route('/{purchase}', name: 'app_purchase_delete', methods: ['DELETE'])]
+    public function delete(Purchase $purchase): JsonResponse
+    {
+        $this->purchaseRepository->remove($purchase, true);
 
         return $this->json([
             'success' => true,
