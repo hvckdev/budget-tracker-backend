@@ -28,6 +28,8 @@ class PurchaseProductService
         foreach ($products as $product) {
             $entity = $this->createProduct($product);
 
+            $entity->setUser($purchase->getUser());
+
             $purchase->addProduct($entity);
         }
     }
