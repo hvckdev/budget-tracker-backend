@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\User;
 use App\Entity\Category;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,7 +41,7 @@ class CategoryRepository extends ServiceEntityRepository
         }
     }
 
-    public function findByUser(User $user)
+    public function findByUser(UserInterface $user)
     {
         return $this->createQueryBuilder('c')
             ->select('c.id', 'c.name')

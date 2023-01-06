@@ -4,33 +4,28 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Request\CategoryRequest;
-use App\Repository\CategoryRepository;
-use Symfony\Bundle\SecurityBundle\Security;
 use App\Resource\CategoryResource;
+use App\Repository\CategoryRepository;
+use App\Service\RequestValidatorService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 #[Route('/category')]
 class CategoryController extends AbstractController
 {
     public function __construct(
-        readonly SerializerInterface $serializer,
-        readonly ValidatorInterface $validator,
-        readonly Security $security,
-        readonly CategoryRepository $categoryRepository
+        private readonly CategoryRepository $categoryRepository,
+        private readonly RequestValidatorService $requestValidatorService,
     ) {
     }
 
     #[Route('', name: 'app_category', methods: ['GET'])]
     public function index(): JsonResponse
     {
-        $categories = $this->categoryRepository->findByUser($this->security->getUser());
+        $categories = $this->categoryRepository->findByUser($this->getUser());
 
         return $this->json([
             'data' => $categories,
@@ -41,19 +36,20 @@ class CategoryController extends AbstractController
     #[Route('', name: 'app_category_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        /** @var CategoryRequest $dto */
-        $dto = $this->serializer->deserialize($request->getContent(), CategoryRequest::class, 'json');
+        $category = new Category();
 
-        $errors = $this->validator->validate($dto);
+        $category->setUser($this->getUser());
+
+        [$dto, $errors] = $this->requestValidatorService->validate(
+            $request->getContent(),
+            CategoryRequest::class,
+        );
 
         if ($errors->count() > 0) {
             return $this->json($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $category = new Category();
-
-        $category->setName($dto->name);
-        $category->setUser($this->security->getUser());
+        $dto->fill($category);
 
         $this->categoryRepository->save($category, true);
 
@@ -65,16 +61,16 @@ class CategoryController extends AbstractController
     #[Route('/{category}', name: 'app_category_update', methods: ['PUT'])]
     public function update(Request $request, Category $category): JsonResponse
     {
-        /** @var CategoryRequest $dto */
-        $dto = $this->serializer->deserialize($request->getContent(), CategoryRequest::class, 'json');
-
-        $errors = $this->validator->validate($dto);
+        [$dto, $errors] = $this->requestValidatorService->validate(
+            $request->getContent(),
+            CategoryRequest::class,
+        );
 
         if ($errors->count() > 0) {
-            throw new UnprocessableEntityHttpException((string) $errors);
+            return $this->json($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $category->setName($dto->name);
+        $dto->fill($category);
 
         $this->categoryRepository->save($category, true);
 

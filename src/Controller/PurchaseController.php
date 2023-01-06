@@ -2,41 +2,36 @@
 
 namespace App\Controller;
 
-use DateTimeImmutable;
-use App\Entity\Product;
 use App\Entity\Purchase;
 use App\Request\PurchaseRequest;
 use App\Resource\PurchaseResource;
 use App\Repository\PurchaseRepository;
-use App\Repository\CategoryRepository;
+use App\Service\RequestValidatorService;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\Purchase\PurchaseProductService;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Service\Purchase\PurchaseCalculateAmountService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/purchase')]
 class PurchaseController extends AbstractController
 {
     public function __construct(
-        private readonly Security $security,
         private readonly PurchaseRepository $purchaseRepository,
-        private readonly SerializerInterface $serializer,
-        private readonly ValidatorInterface $validator,
-        private readonly CategoryRepository $categoryRepository,
         private readonly ManagerRegistry $managerRegistry,
-
+        private readonly RequestValidatorService $requestValidatorService,
+        private readonly PurchaseProductService $purchaseProductService,
+        private readonly PurchaseCalculateAmountService $purchaseCalculateAmountService,
     ) {
     }
 
     #[Route('', name: 'app_purchase', methods: ['GET'])]
     public function index(): JsonResponse
     {
-        $purchases = $this->purchaseRepository->findByUser($this->security->getUser());
+        $purchases = $this->purchaseRepository->findByUser($this->getUser());
 
         return $this->json([
             'data' => $purchases,
@@ -48,45 +43,29 @@ class PurchaseController extends AbstractController
     {
         $em = $this->managerRegistry->getManager();
 
-        $amount = "0.00";
+        $purchase = new Purchase();
+
+        $purchase->setUser($this->getUser());
 
         /** @var PurchaseRequest $dto */
-        $dto = $this->serializer->deserialize($request->getContent(), PurchaseRequest::class, 'json');
-
-        $errors = $this->validator->validate($dto);
+        [$dto, $errors] = $this->requestValidatorService->validate(
+            $request->getContent(),
+            PurchaseRequest::class,
+        );
 
         if ($errors->count() > 0) {
             return $this->json($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $purchase = new Purchase();
+        $dto->fill($purchase);
 
-        $purchase->setUser($this->security->getUser());
-        $purchase->setCreatedAt(
-            DateTimeImmutable::createFromFormat(
-                'Y-m-d',
-                $dto->created_at,
-            ),
-        );
-        $purchase->setName($dto->name);
+        $this->purchaseProductService->syncProductsWithPurchase($purchase, $dto->products);
 
-        foreach ($dto->products as $product) {
-            $entity = new Product();
+        $purchase->setAmount($this->purchaseCalculateAmountService->calculate($purchase));
 
-            $entity->setUser($this->security->getUser());
-            $entity->setName($product['name']);
-            $entity->setPrice($product['price']);
-
-            $entity->setCategory($this->categoryRepository->find($product['category']));
-
-            $purchase->addProduct($entity);
-
-            $em->persist($entity);
-
-            $amount = bcadd($amount, $product['price'], 2);
+        foreach ($purchase->getProducts() as $product) {
+            $em->persist($product);
         }
-
-        $purchase->setAmount($amount);
 
         $em->persist($purchase);
         $em->flush();
@@ -103,6 +82,39 @@ class PurchaseController extends AbstractController
 
         return $this->json([
             'data' => $resource->toArray(),
+        ]);
+    }
+
+    #[Route('/{purchase}', name: 'app_purchase_update', methods: ['PUT'])]
+    public function update(Request $request, Purchase $purchase): JsonResponse
+    {
+        $em = $this->managerRegistry->getManager();
+
+        /** @var PurchaseRequest $dto */
+        [$dto, $errors] = $this->requestValidatorService->validate(
+            $request->getContent(),
+            PurchaseRequest::class,
+        );
+
+        if ($errors->count() > 0) {
+            return $this->json($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $dto->fill($purchase);
+
+        $this->purchaseProductService->syncProductsWithPurchase($purchase, $dto->products);
+
+        $purchase->setAmount($this->purchaseCalculateAmountService->calculate($purchase));
+
+        foreach ($purchase->getProducts() as $product) {
+            $em->persist($product);
+        }
+
+        $em->persist($purchase);
+        $em->flush();
+
+        return $this->json([
+            'success' => true,
         ]);
     }
 

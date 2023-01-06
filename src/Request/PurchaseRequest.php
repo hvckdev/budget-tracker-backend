@@ -3,6 +3,7 @@
 namespace App\Request;
 
 use DateTimeImmutable;
+use App\Entity\Purchase;
 use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\Date;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -25,4 +26,15 @@ class PurchaseRequest
         ]),
     ])]
     public array $products;
+
+    public function fill(Purchase $purchase): void
+    {
+        $purchase->setName($this->name);
+        $purchase->setCreatedAt(
+            DateTimeImmutable::createFromFormat(
+                'Y-m-d',
+                $this->created_at,
+            ),
+        );
+    }
 }
