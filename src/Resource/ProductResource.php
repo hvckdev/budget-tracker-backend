@@ -12,11 +12,14 @@ class ProductResource
 
     public function toArray(): array
     {
+        $category = $this->product->getCategory();
+
         return [
             'id' => $this->product->getId(),
             'name' => $this->product->getName(),
             'price' => $this->product->getPrice(),
-            'category' => $this->product->getCategory()?->getId(),
+            'category' => $category?->getId(),
+            'categoryResource' => (new CategoryResource($category))->toArray(),
         ];
     }
 }
