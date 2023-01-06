@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\API\V1;
 
 use App\Entity\Category;
 use App\Request\CategoryRequest;
