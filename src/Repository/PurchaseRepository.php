@@ -46,6 +46,7 @@ class PurchaseRepository extends ServiceEntityRepository
             ->select('p.id', 'p.name', 'p.amount', 'p.created_at')
             ->andWhere('p.user = :user')
             ->setParameter('user', $user->getId())
+            ->orderBy('p.id', 'DESC')
             ->getQuery()
             ->getResult();
     }
