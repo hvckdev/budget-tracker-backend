@@ -9,6 +9,6 @@ RUN apk add --update \
     oniguruma-dev
 
 RUN docker-php-ext-install \
-    pdo pdo_mysql zip xsl intl opcache exif mbstring
+    pdo pdo_mysql zip xsl intl opcache exif mbstring bcmath
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN curl -sS https://getcomposer.org/installer | p  hp -- --install-dir=/usr/local/bin --filename=composer
