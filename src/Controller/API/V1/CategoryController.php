@@ -40,16 +40,16 @@ class CategoryController extends AbstractController
 
         $category->setUser($this->getUser());
 
-        [$dto, $errors] = $this->requestValidatorService->validate(
+        $validated = $this->requestValidatorService->validate(
             $request->getContent(),
             CategoryRequest::class,
         );
 
-        if ($errors->count() > 0) {
-            return $this->json($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
+        if (count($validated->getErrors()) > 0) {
+            return $this->json($validated->getErrors(), Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $dto->fill($category);
+        $validated->getDto()->fill($category);
 
         $this->categoryRepository->save($category, true);
 
