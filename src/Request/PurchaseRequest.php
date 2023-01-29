@@ -4,12 +4,13 @@ namespace App\Request;
 
 use DateTimeImmutable;
 use App\Entity\Purchase;
+use App\Contracts\RequestFillerInterface;
 use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\Date;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Collection;
 
-class PurchaseRequest
+class PurchaseRequest implements RequestFillerInterface
 {
     #[NotBlank]
     public string $name;
@@ -27,10 +28,15 @@ class PurchaseRequest
     ])]
     public array $products;
 
-    public function fill(Purchase $purchase): void
+    /**
+     * @param Purchase $entity
+     *
+     * @return void
+     */
+    public function fill($entity): void
     {
-        $purchase->setName($this->name);
-        $purchase->setCreatedAt(
+        $entity->setName($this->name);
+        $entity->setCreatedAt(
             DateTimeImmutable::createFromFormat(
                 'Y-m-d',
                 $this->created_at,

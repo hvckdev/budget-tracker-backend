@@ -3,15 +3,21 @@
 namespace App\Request;
 
 use App\Entity\Category;
+use App\Contracts\RequestFillerInterface;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
-class CategoryRequest
+class CategoryRequest implements RequestFillerInterface
 {
     #[NotBlank]
     public string $name;
 
-    public function fill(Category $category): void
+    /**
+     * @param Category $entity
+     *
+     * @return void
+     */
+    public function fill($entity): void
     {
-        $category->setName($this->name);
+        $entity->setName($this->name);
     }
 }

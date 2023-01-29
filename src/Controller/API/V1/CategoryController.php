@@ -6,11 +6,11 @@ use App\Entity\Category;
 use App\Request\CategoryRequest;
 use App\Resource\CategoryResource;
 use App\Repository\CategoryRepository;
-use App\Service\RequestValidatorService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Service\EnhancedValidator\RequestValidatorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/category')]
@@ -61,16 +61,16 @@ class CategoryController extends AbstractController
     #[Route('/{category}', name: 'app_category_update', methods: ['PUT'])]
     public function update(Request $request, Category $category): JsonResponse
     {
-        [$dto, $errors] = $this->requestValidatorService->validate(
+        $validated = $this->requestValidatorService->validate(
             $request->getContent(),
             CategoryRequest::class,
         );
 
-        if ($errors->count() > 0) {
-            return $this->json($errors, Response::HTTP_UNPROCESSABLE_ENTITY);
+        if (count($validated->getErrors()) > 0) {
+            return $this->json($validated->getErrors(), Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $dto->fill($category);
+        $validated->getDto()->fill($category);
 
         $this->categoryRepository->save($category, true);
 

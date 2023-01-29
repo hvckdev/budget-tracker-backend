@@ -21,7 +21,16 @@ class PurchaseProductService
         $this->addProductsToPurchase($purchase, $products);
     }
 
-    public function addProductsToPurchase(
+    private function removeOldProductsFromPurchase(Purchase $purchase): void
+    {
+        $products = $purchase->getProducts();
+
+        foreach ($products as $product) {
+            $purchase->removeProduct($product);
+        }
+    }
+
+    private function addProductsToPurchase(
         Purchase $purchase,
         array $products,
     ): void {
@@ -34,22 +43,9 @@ class PurchaseProductService
         }
     }
 
-    private function removeOldProductsFromPurchase(Purchase $purchase): void
-    {
-        $products = $purchase->getProducts();
-
-        foreach ($products as $product) {
-            $purchase->removeProduct($product);
-        }
-    }
-
     private function createProduct(array $product): Product
     {
         $entity = $this->findProduct($product);
-
-        if (! $entity) {
-            $entity = new Product();
-        }
 
         $entity->setName($product['name']);
         $entity->setPrice($product['price']);
@@ -60,8 +56,14 @@ class PurchaseProductService
 
     private function findProduct(array $product): ?Product
     {
-        return $this->productRepository->findBy([
+        $entity = $this->productRepository->findBy([
             'name' => $product['name'],
         ])[0] ?? null;
+
+        if ($entity) {
+            return $entity;
+        }
+
+        return new Product();
     }
 }
