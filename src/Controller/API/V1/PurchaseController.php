@@ -46,8 +46,7 @@ class PurchaseController extends AbstractController
 
         $purchase->setUser($this->getUser());
 
-        /** @var PurchaseRequest $dto */
-        return $this->savePurchase($request, $purchase, $dto);
+        return $this->savePurchase($request, $purchase);
     }
 
     #[Route('/{purchase}', name: 'app_purchase_read', methods: ['GET'])]
@@ -63,8 +62,7 @@ class PurchaseController extends AbstractController
     #[Route('/{purchase}', name: 'app_purchase_update', methods: ['PUT'])]
     public function update(Request $request, Purchase $purchase): JsonResponse
     {
-        /** @var PurchaseRequest $dto */
-        return $this->savePurchase($request, $purchase, $dto);
+        return $this->savePurchase($request, $purchase);
     }
 
     #[Route('/{purchase}', name: 'app_purchase_delete', methods: ['DELETE'])]
@@ -77,14 +75,7 @@ class PurchaseController extends AbstractController
         ]);
     }
 
-    /**
-     * @param Request $request
-     * @param Purchase $purchase
-     * @param PurchaseRequest $dto
-     *
-     * @return JsonResponse
-     */
-    private function savePurchase(Request $request, Purchase $purchase, PurchaseRequest $dto): JsonResponse
+    private function savePurchase(Request $request, Purchase $purchase): JsonResponse
     {
         $validated = $this->requestValidatorService->validate(
             $request->getContent(),
@@ -97,7 +88,7 @@ class PurchaseController extends AbstractController
 
         $validated->getDto()->fill($purchase);
 
-        $this->purchaseProductService->syncProductsWithPurchase($purchase, $dto->products);
+        $this->purchaseProductService->syncProductsWithPurchase($purchase, $validated->getDto()->products);
 
         $purchase->setAmount($this->purchaseCalculateAmountService->calculate($purchase));
 

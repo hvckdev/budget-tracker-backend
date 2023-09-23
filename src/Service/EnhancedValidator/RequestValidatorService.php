@@ -20,6 +20,6 @@ class RequestValidatorService
 
         $errors = $this->validator->validate($dto);
 
-        return new Validated($dto, (array) $errors);
+        return new Validated($dto, $errors);
     }
 }
