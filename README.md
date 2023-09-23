@@ -21,7 +21,7 @@ or
 
 - Docker
 
-## Deploy
+## Deploy by yourself
 
 ```bash
 git clone https://github.com/hvckdev/budget-tracker-backend.git && \
